@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최후의생존 관리자 패널</title>
+    <link rel="icon" type="image/svg+xml" href="../img/logos/suroi_favicon.svg">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <img src="../img/logos/suroi_beta.svg" alt="Suroi">
+            <h2>🔐 관리자 로그인</h2>
+            <div id="login-alert"></div>
+            <div class="form-group">
+                <label>역할</label>
+                <select id="login-role">
+                    <option value="developr">개발자</option>
+                    <option value="administratr">관리자</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="login-password" placeholder="비밀번호">
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="login()">로그인</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" style="display:none">
+        <header class="header">
+            <h1><span
+                    style="background: linear-gradient(135deg, #ff6b00, #ff4500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">최후의생존</span>
+                관리자 패널</h1>
+            <div class="header-actions">
+                <span id="current-user"></span>
+                <button class="btn btn-primary" onclick="window.open('/')">🎮 게임</button>
+                <button class="btn btn-danger" onclick="logout()">로그아웃</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <nav class="sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="#" class="active" data-page="dashboard">📊 대시보드</a></li>
+                    <li><a href="#" data-page="announcement">📢 공지사항</a></li>
+                    <li><a href="#" data-page="chat-manage">💬 채팅 관리</a></li>
+                    <li><a href="#" data-page="bots">🤖 AI 봇 관리</a></li>
+                    <li><a href="#" data-page="guns">🔫 총기 관리</a></li>
+                    <li><a href="#" data-page="melees">🗡️ 근접무기</a></li>
+                    <li><a href="#" data-page="perks">⭐ 퍽 관리</a></li>
+                    <li><a href="#" data-page="maps">🗺️ 맵 설정</a></li>
+                    <li><a href="#" data-page="modes">🎯 모드 설정</a></li>
+                    <li><a href="#" data-page="server">⚙️ 서버 설정</a></li>
+                    <li><a href="#" data-page="news">📰 뉴스 관리</a></li>
+                </ul>
+            </nav>
+
+            <main class="main-content">
+                <!-- 대시보드 -->
+                <div id="dashboard" class="page active">
+                    <h2>📊 서버 대시보드</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #1a5a30, #2d8a50);">
+                            <h3>👤 실제 유저</h3>
+                            <div class="value" id="stat-users">0</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #1a3a5a, #2d5a8a);">
+                            <h3>🤖 AI 봇</h3>
+                            <div class="value" id="stat-bots">0</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #5a1a3a, #8a2d5a);">
+                            <h3>📊 전체 플레이어</h3>
+                            <div class="value" id="stat-total">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🔫 등록된 총기</h3>
+                            <div class="value" id="stat-guns">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🗡️ 근접무기</h3>
+                            <div class="value" id="stat-melees">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>⭐ 퍽</h3>
+                            <div class="value" id="stat-perks">0</div>
+                        </div>
+                    </div>
+
+                    <!-- 접속자 목록 -->
+                    <div class="card">
+                        <h2>🌐 현재 접속자 (IP)</h2>
+                        <div id="connected-users-list"
+                            style="max-height: 200px; overflow-y: auto; background: #0a0a0f; padding: 10px; border-radius: 8px; font-family: monospace;">
+                            <div style="color: #666;">로딩 중...</div>
+                        </div>
+                        <div class="btn-group" style="margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="refreshPlayerStats()">🔄 새로고침</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>⚡ 빠른 작업</h2>
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="changeMap('normal')">🗺️ 일반 맵</button>
+                            <button class="btn btn-success" onclick="changeMap('winter')">❄️ 겨울 맵</button>
+                            <button class="btn btn-primary" onclick="changeMode('solo')">👤 솔로</button>
+                            <button class="btn btn-primary" onclick="changeMode('duo')">👥 듀오</button>
+                            <button class="btn btn-primary" onclick="changeMode('squad')">👨‍👩‍👧‍👦 스쿼드</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🤖 AI 봇 빠른 추가</h2>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>서버 선택:</label>
+                            <select id="dashboard-server-port" style="padding: 8px; border-radius: 4px;">
+                                <option value="8000">솔로 (8000)</option>
+                                <option value="8010">듀오 (8010)</option>
+                                <option value="8020">스쿼드 (8020)</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-warning" onclick="addBotsFromDashboard(1)">+1 봇</button>
+                            <button class="btn btn-warning" onclick="addBotsFromDashboard(3)">+3 봇</button>
+                            <button class="btn btn-warning" onclick="addBotsFromDashboard(5)">+5 봇</button>
+                            <button class="btn btn-warning" onclick="addBotsFromDashboard(10)">+10 봇</button>
+                            <button class="btn btn-danger" onclick="removeAllBotsFromDashboard()">모든 봇 제거</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📢 공지사항 관리 -->
+                <div id="announcement" class="page">
+                    <h2>📢 공지사항 / 알림 전송</h2>
+                    <div class="card">
+                        <h3>🔔 실시간 알림 전송</h3>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 2;">
+                                <label>메시지 내용</label>
+                                <textarea id="announce-message" rows="3"
+                                    placeholder="전체 플레이어에게 보낼 메시지를 입력하세요..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>글자 크기</label>
+                                <select id="announce-fontsize">
+                                    <option value="14">작게 (14px)</option>
+                                    <option value="18" selected>보통 (18px)</option>
+                                    <option value="24">크게 (24px)</option>
+                                    <option value="32">매우 크게 (32px)</option>
+                                    <option value="48">거대 (48px)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>글자 색상</label>
+                                <input type="color" id="announce-color" value="#FFD700">
+                            </div>
+                            <div class="form-group">
+                                <label>배경 색상</label>
+                                <input type="color" id="announce-bgcolor" value="#1a1a2e">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>노출 위치</label>
+                                <select id="announce-position">
+                                    <option value="top">상단</option>
+                                    <option value="center" selected>중앙</option>
+                                    <option value="bottom">하단</option>
+                                    <option value="top-left">좌측 상단</option>
+                                    <option value="top-right">우측 상단</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>노출 시간 (초)</label>
+                                <input type="number" id="announce-duration" value="5" min="1" max="60">
+                            </div>
+                            <div class="form-group">
+                                <label>애니메이션</label>
+                                <select id="announce-animation">
+                                    <option value="fade">페이드</option>
+                                    <option value="slide">슬라이드</option>
+                                    <option value="bounce">바운스</option>
+                                    <option value="shake">흔들림</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>서버 선택</label>
+                                <select id="announce-server">
+                                    <option value="all">모든 서버</option>
+                                    <option value="8000">솔로 (8000)</option>
+                                    <option value="8010">듀오 (8010)</option>
+                                    <option value="8020">스쿼드 (8020)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>알림 타입</label>
+                                <select id="announce-type">
+                                    <option value="info">ℹ️ 정보</option>
+                                    <option value="warning">⚠️ 경고</option>
+                                    <option value="success">✅ 성공</option>
+                                    <option value="error">❌ 오류</option>
+                                    <option value="event">🎉 이벤트</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>미리보기</label>
+                            <div id="announce-preview"
+                                style="padding: 20px; border-radius: 8px; margin-top: 10px; text-align: center;">
+                                알림 미리보기
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="previewAnnouncement()">👁️ 미리보기</button>
+                            <button class="btn btn-success" onclick="sendAnnouncement()">📢 전송</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>📋 전송 기록</h3>
+                        <table id="announcement-history-table">
+                            <thead>
+                                <tr>
+                                    <th>시간</th>
+                                    <th>메시지</th>
+                                    <th>서버</th>
+                                    <th>타입</th>
+                                </tr>
+                            </thead>
+                            <tbody id="announcement-history"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 💬 채팅 관리 -->
+                <div id="chat-manage" class="page">
+                    <h2>💬 채팅 관리</h2>
+                    <div class="card">
+                        <h3>🔇 채금 (Mute) 관리</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>플레이어 이름 / IP</label>
+                                <input type="text" id="mute-target" placeholder="플레이어 이름 또는 IP">
+                            </div>
+                            <div class="form-group">
+                                <label>채금 시간</label>
+                                <select id="mute-duration">
+                                    <option value="5">5분</option>
+                                    <option value="15">15분</option>
+                                    <option value="30">30분</option>
+                                    <option value="60">1시간</option>
+                                    <option value="1440">1일</option>
+                                    <option value="10080">1주</option>
+                                    <option value="-1">영구</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>사유</label>
+                                <input type="text" id="mute-reason" placeholder="채금 사유">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-warning" onclick="mutePlayer()">🔇 채금</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>📜 채금 목록</h3>
+                        <table id="mute-list-table">
+                            <thead>
+                                <tr>
+                                    <th>플레이어</th>
+                                    <th>사유</th>
+                                    <th>남은 시간</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mute-list"></tbody>
+                        </table>
+                    </div>
+                    <div class="card">
+                        <h3>💬 채팅 설정</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>채팅 활성화</label>
+                                <select id="chat-enabled">
+                                    <option value="true">활성화</option>
+                                    <option value="false">비활성화</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>채팅 쿨다운 (초)</label>
+                                <input type="number" id="chat-cooldown" value="1" min="0" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label>최대 메시지 길이</label>
+                                <input type="number" id="chat-maxlength" value="150" min="10" max="500">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>욕설 필터</label>
+                                <select id="chat-filter">
+                                    <option value="true">활성화</option>
+                                    <option value="false">비활성화</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>팀 채팅만 허용</label>
+                                <select id="chat-team-only">
+                                    <option value="false">아니오</option>
+                                    <option value="true">예</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="saveChatSettings()">💾 설정 저장</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>📊 실시간 채팅 로그</h3>
+                        <div id="chat-log"
+                            style="height: 300px; overflow-y: auto; background: #0a0a0f; padding: 10px; border-radius: 8px; font-family: monospace;">
+                            <div style="color: #666;">채팅 로그가 여기에 표시됩니다...</div>
+                        </div>
+                        <div class="btn-group" style="margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="refreshChatLog()">🔄 새로고침</button>
+                            <button class="btn btn-danger" onclick="clearChatLog()">🗑️ 로그 지우기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI 봇 관리 -->
+                <div id="bots" class="page">
+                    <h2>🤖 AI 봇 관리</h2>
+                    <div class="card">
+                        <h3>🔄 게임 시작 시 자동 봇 투입</h3>
+                        <p style="color: #888; margin-bottom: 15px;">게임이 끝나고 새 게임이 시작될 때 자동으로 봇을 투입합니다.</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>서버 선택</label>
+                                <select id="auto-bot-server">
+                                    <option value="all">모든 서버</option>
+                                    <option value="4001">솔로 (4001)</option>
+                                    <option value="4011">듀오 (4011)</option>
+                                    <option value="4021">스쿼드 (4021)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>자동 투입 봇 수</label>
+                                <input type="number" id="auto-bot-count" value="0" min="0" max="50">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 2;">
+                                <label>현재 설정 상태</label>
+                                <div id="auto-bot-status"
+                                    style="padding: 10px; background: #1a1a2e; border-radius: 5px; color: #0ff; min-height: 60px;">
+                                    로딩 중...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="setAutoBots()">✅ 자동 봇 설정 저장</button>
+                            <button class="btn btn-primary" onclick="getAutoBots()">🔄 현재 설정 확인</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>➕ 수동 봇 추가</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>추가할 봇 수</label>
+                                <input type="number" id="bot-count" value="3" min="1" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label>서버 포트</label>
+                                <select id="bot-server-port">
+                                    <option value="8000">솔로 (8000)</option>
+                                    <option value="8010">듀오 (8010)</option>
+                                    <option value="8020">스쿼드 (8020)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="addBotsFromForm()">🤖 봇 추가</button>
+                            <button class="btn btn-primary" onclick="refreshBotList()">🔄 목록 새로고침</button>
+                            <button class="btn btn-danger" onclick="removeAllBots()">🗑️ 모든 봇 제거</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>활성 봇 목록</h3>
+                        <div id="bot-list-info">봇 수: <strong id="bot-count-display">0</strong></div>
+                        <table id="bots-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>체력</th>
+                                    <th>상태</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bots-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 총기 관리 -->
+                <div id="guns" class="page">
+                    <h2>🔫 총기 관리</h2>
+                    <div class="card">
+                        <div class="toolbar">
+                            <input type="text" id="gun-search" placeholder="🔍 총기 검색..." onkeyup="filterGuns()">
+                            <button class="btn btn-success" onclick="window.open('weapon-editor.html')">🔫 무기 에디터
+                                열기</button>
+                        </div>
+                        <table id="guns-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>탄약</th>
+                                    <th>피해</th>
+                                    <th>발사속도</th>
+                                    <th>티어</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guns-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 근접무기 관리 -->
+                <div id="melees" class="page">
+                    <h2>🗡️ 근접무기 관리</h2>
+                    <div class="card">
+                        <div class="toolbar">
+                            <input type="text" id="melee-search" placeholder="🔍 근접무기 검색...">
+                            <button class="btn btn-success" onclick="window.open('melee-editor.html')">🗡️ 근접무기 에디터
+                                열기</button>
+                        </div>
+                        <table id="melees-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>피해</th>
+                                    <th>공격속도</th>
+                                    <th>사거리</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="melees-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 퍽 관리 -->
+                <div id="perks" class="page">
+                    <h2>⭐ 퍽 관리</h2>
+                    <div class="card">
+                        <div class="toolbar">
+                            <select id="perk-category" onchange="filterPerks()">
+                                <option value="all">모든 카테고리</option>
+                                <option value="Normal">일반</option>
+                                <option value="Halloween">할로윈</option>
+                                <option value="Hunted">헌티드</option>
+                                <option value="Infection">감염</option>
+                            </select>
+                            <button class="btn btn-success" onclick="window.open('perk-editor.html')">⭐ 퍽 에디터
+                                열기</button>
+                        </div>
+                        <table id="perks-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>이름</th>
+                                    <th>카테고리</th>
+                                    <th>품질</th>
+                                    <th>효과</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="perks-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 맵 설정 -->
+                <div id="maps" class="page">
+                    <h2>🗺️ 맵 설정</h2>
+                    <div class="card">
+                        <h3>현재 맵 설정</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>맵 선택</label>
+                                <select id="map-select">
+                                    <option value="normal">일반 (Normal)</option>
+                                    <option value="winter">겨울 (Winter)</option>
+                                    <option value="harvest">하베스트 (Harvest)</option>
+                                    <option value="halloween">할로윈 (Halloween)</option>
+                                    <option value="hunted">헌티드 (Hunted)</option>
+                                    <option value="infection">감염 (Infection)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>맵 스케일</label>
+                                <input type="number" id="map-scale" value="1" step="0.1">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveMapSettings()">💾 맵 설정 저장</button>
+                    </div>
+                </div>
+
+                <!-- 모드 설정 -->
+                <div id="modes" class="page">
+                    <h2>🎯 모드 설정</h2>
+                    <div class="card">
+                        <h3>게임 모드 설정</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>팀 모드</label>
+                                <select id="team-mode">
+                                    <option value="solo">솔로</option>
+                                    <option value="duo">듀오</option>
+                                    <option value="squad">스쿼드</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>게임당 최대 인원</label>
+                                <input type="number" id="max-players" value="80">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>최대 동시 게임</label>
+                                <input type="number" id="max-games" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>게임 시작 최소 팀</label>
+                                <input type="number" id="min-teams" value="2">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveModeSettings()">💾 모드 설정 저장</button>
+                    </div>
+                </div>
+
+                <!-- 서버 설정 -->
+                <div id="server" class="page">
+                    <h2>⚙️ 서버 설정</h2>
+                    <div class="card">
+                        <h3>서버 기본 설정</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>호스트</label>
+                                <input type="text" id="srv-host" value="127.0.0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>포트</label>
+                                <input type="number" id="srv-port" value="8000">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>가스 비활성화</label>
+                            <input type="checkbox" id="gas-disabled">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveServerSettings()">💾 서버 설정 저장</button>
+                    </div>
+                </div>
+
+                <!-- 뉴스 관리 -->
+                <div id="news" class="page">
+                    <h2>📰 뉴스 관리</h2>
+                    <div class="card">
+                        <h3>새 뉴스 작성</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>제목</label><input type="text" id="news-title"></div>
+                            <div class="form-group"><label>작성자</label><input type="text" id="news-author"></div>
+                        </div>
+                        <div class="form-group"><label>버전</label><input type="text" id="news-version"
+                                placeholder="v0.31.0"></div>
+                        <div class="form-group"><label>내용 (Markdown)</label><textarea id="news-content"
+                                rows="10"></textarea></div>
+                        <button class="btn btn-success" onclick="createNews()">📝 뉴스 생성</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 편집 모달 -->
+    <div id="edit-modal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">편집</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveEdit()">💾 저장</button>
+                <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

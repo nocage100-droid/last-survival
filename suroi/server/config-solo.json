@@ -1,0 +1,25 @@
+{
+    "$schema": "config.schema.json",
+    "hostname": "127.0.0.1",
+    "port": 4000,
+    "map": "normal",
+    "teamMode": "solo",
+    "spawn": {
+        "mode": "default"
+    },
+    "maxPlayersPerGame": 80,
+    "maxGames": 1,
+    "plugins": [
+        "aiBotPlugin"
+    ],
+    "roles": {
+        "developr": {
+            "password": "developr",
+            "isDev": true
+        },
+        "hasanger": {
+            "password": "hasanger",
+            "isDev": true
+        }
+    }
+}

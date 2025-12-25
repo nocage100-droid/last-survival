@@ -1,0 +1,40 @@
+{
+  "name": "최후의생존 - 무료 배틀로얄",
+  "short_name": "최후의생존",
+  "description": "100명이 싸워 1명만 살아남는 무료 2D 배틀로얄 게임. 커피 프리 지원!",
+  "background_color": "#5b8939",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "./img/logos/suroi_favicon_16x16.png",
+      "type": "image/png",
+      "sizes": "16x16"
+    },
+    {
+      "src": "./img/logos/suroi_favicon_32x32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "./img/logos/suroi_favicon_96x96.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    },
+    {
+      "src": "./img/logos/suroi_favicon_512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "News",
+      "url": "/news/"
+    }
+  ]
+}

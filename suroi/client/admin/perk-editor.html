@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최후의생존 퍽 에디터</title>
+    <link rel="icon" type="image/svg+xml" href="../img/logos/suroi_favicon.svg">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .stat-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .slider-group {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .slider-group .value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tabs button {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #aaa;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+        }
+
+        .tabs button.active {
+            background: rgba(102, 126, 234, 0.3);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-output {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 300px;
+            overflow: auto;
+            white-space: pre-wrap;
+            color: #38ef7d;
+        }
+
+        .quality-positive {
+            color: #38ef7d;
+        }
+
+        .quality-neutral {
+            color: #fbbf24;
+        }
+
+        .quality-negative {
+            color: #f5576c;
+        }
+
+        .perk-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .perk-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .effect-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .effect-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .effect-item .effect-config {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .effect-item input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1><span
+                style="background: linear-gradient(135deg, #ff6b00, #ff4500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">최후의생존</span>
+            퍽 에디터</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="location.href='/admin/'">← 관리자 패널</button>
+            <button class="btn btn-success" onclick="exportPerk()">💾 내보내기</button>
+        </div>
+    </header>
+
+    <div style="padding: 20px;">
+        <div class="tabs">
+            <button class="active" onclick="showTab('create')">⭐ 퍽 생성</button>
+            <button onclick="showTab('export')">📄 코드 출력</button>
+        </div>
+
+        <div id="create" class="tab-content active">
+            <div class="card">
+                <h2>기본 정보</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>퍽 ID (영문)</label>
+                        <input type="text" id="perk-id" placeholder="my_perk" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>퍽 이름</label>
+                        <input type="text" id="perk-name" placeholder="My Perk" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>카테고리</label>
+                        <select id="perk-category" onchange="updatePreview()">
+                            <option value="Normal">Normal (일반)</option>
+                            <option value="Halloween">Halloween (할로윈)</option>
+                            <option value="Hunted">Hunted (헌티드)</option>
+                            <option value="Infection">Infection (감염)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>품질</label>
+                        <select id="perk-quality" onchange="updatePreview()">
+                            <option value="Positive">긍정적 (Positive)</option>
+                            <option value="Neutral">중립 (Neutral)</option>
+                            <option value="Negative">부정적 (Negative)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>퍽 미리보기</h2>
+                <div class="perk-preview">
+                    <div class="perk-icon" id="perk-icon">⭐</div>
+                    <h3 id="preview-name" style="color:#667eea;">My Perk</h3>
+                    <p id="preview-quality" class="quality-positive">긍정적</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>효과 설정</h2>
+                <p style="color:#aaa; margin-bottom:15px;">퍽이 부여하는 효과를 선택하세요.</p>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-speed" onchange="updatePreview()">
+                    <label>🏃 이동속도 배율</label>
+                    <input type="number" id="val-speed" value="1.2" step="0.1" min="0.5" max="2"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-damage" onchange="updatePreview()">
+                    <label>💥 피해량 배율</label>
+                    <input type="number" id="val-damage" value="1.2" step="0.1" min="0.5" max="3"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-health" onchange="updatePreview()">
+                    <label>❤️ 최대 체력 배율</label>
+                    <input type="number" id="val-health" value="1.5" step="0.1" min="0.5" max="3"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-size" onchange="updatePreview()">
+                    <label>📏 크기 배율</label>
+                    <input type="number" id="val-size" value="0.8" step="0.1" min="0.5" max="2"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-reload" onchange="updatePreview()">
+                    <label>🔄 재장전 속도 배율</label>
+                    <input type="number" id="val-reload" value="0.7" step="0.1" min="0.3" max="2"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-healing" onchange="updatePreview()">
+                    <label>💊 힐링 배율</label>
+                    <input type="number" id="val-healing" value="1.5" step="0.1" min="0.5" max="3"
+                        onchange="updatePreview()">
+                </div>
+
+                <div class="effect-item">
+                    <input type="checkbox" id="eff-melee" onchange="updatePreview()">
+                    <label>🗡️ 근접 피해 배율</label>
+                    <input type="number" id="val-melee" value="1.3" step="0.1" min="0.5" max="3"
+                        onchange="updatePreview()">
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>추가 옵션</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><input type="checkbox" id="opt-noswap"> 교체 불가 (noSwap)</label>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="opt-mechanical"> 기계적 퍽 (mechanical)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="export" class="tab-content">
+            <div class="card">
+                <h2>📄 생성된 TypeScript 코드</h2>
+                <p style="color:#aaa; margin-bottom:15px;"><code>common/src/definitions/items/perks.ts</code>에 추가</p>
+                <div class="code-output" id="code-output"></div>
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <button class="btn btn-primary" onclick="copyCode()">📋 코드 복사</button>
+                    <button class="btn btn-success" onclick="downloadCode()">💾 파일 다운로드</button>
+                    <button class="btn btn-danger" onclick="saveToFile()"
+                        style="background:linear-gradient(135deg,#f5576c 0%,#ff6b6b 100%);">🚀 게임에 추가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const qualityIcons = { Positive: '⭐', Neutral: '🔶', Negative: '💀' };
+        const qualityLabels = { Positive: '긍정적', Neutral: '중립', Negative: '부정적' };
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'export') generateCode();
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('perk-name').value || 'My Perk';
+            const quality = document.getElementById('perk-quality').value;
+
+            document.getElementById('preview-name').textContent = name;
+            document.getElementById('perk-icon').textContent = qualityIcons[quality];
+            document.getElementById('preview-quality').textContent = qualityLabels[quality];
+            document.getElementById('preview-quality').className = 'quality-' + quality.toLowerCase();
+
+            generateCode();
+        }
+
+        function generateCode() {
+            const id = document.getElementById('perk-id').value || 'my_perk';
+            const name = document.getElementById('perk-name').value || 'My Perk';
+            const category = document.getElementById('perk-category').value;
+            const quality = document.getElementById('perk-quality').value;
+            const noSwap = document.getElementById('opt-noswap').checked;
+            const mechanical = document.getElementById('opt-mechanical').checked;
+
+            let effects = [];
+            if (document.getElementById('eff-speed').checked) effects.push(`speedMod: ${document.getElementById('val-speed').value}`);
+            if (document.getElementById('eff-damage').checked) effects.push(`damageMod: ${document.getElementById('val-damage').value}`);
+            if (document.getElementById('eff-health').checked) effects.push(`healthMod: ${document.getElementById('val-health').value}`);
+            if (document.getElementById('eff-size').checked) effects.push(`sizeMod: ${document.getElementById('val-size').value}`);
+            if (document.getElementById('eff-reload').checked) effects.push(`reloadMod: ${document.getElementById('val-reload').value}`);
+            if (document.getElementById('eff-healing').checked) effects.push(`healingMod: ${document.getElementById('val-healing').value}`);
+            if (document.getElementById('eff-melee').checked) effects.push(`meleeDamageMod: ${document.getElementById('val-melee').value}`);
+
+            const code = `{
+    idString: "${id}",
+    name: "${name}",
+    defType: DefinitionType.Perk,
+    category: PerkCategories.${category},
+    quality: PerkQualities.${quality}${noSwap ? ',\n    noSwap: true' : ''}${mechanical ? ',\n    mechanical: true' : ''}${effects.length > 0 ? ',\n\n    ' + effects.join(',\n    ') : ''}
+},`;
+
+            document.getElementById('code-output').textContent = code;
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('code-output').textContent);
+            alert('✅ 코드 복사됨!');
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('code-output').textContent;
+            const id = document.getElementById('perk-id').value || 'my_perk';
+            const blob = new Blob([code], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${id}_definition.ts`;
+            a.click();
+        }
+
+        function exportPerk() {
+            generateCode();
+            showTab('export');
+        }
+
+        async function saveToFile() {
+            const code = document.getElementById('code-output').textContent;
+            const id = document.getElementById('perk-id').value;
+            const name = document.getElementById('perk-name').value;
+            if (!id || !name) { alert('❌ ID와 이름을 입력하세요!'); return; }
+
+            try {
+                const response = await fetch('http://localhost:8080/api/perks/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, perkId: id })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert(`✅ 퍽 "${name}" 추가 완료!\n\n다음 단계:\n1. bun run build\n2. 서버 재시작`);
+                } else {
+                    alert('❌ 오류: ' + result.error);
+                }
+            } catch (error) {
+                alert('❌ API 서버 연결 실패!\n\n먼저 API 서버를 실행하세요.');
+            }
+        }
+
+        generateCode();
+    </script>
+</body>
+
+</html>

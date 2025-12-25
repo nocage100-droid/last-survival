@@ -1,0 +1,69 @@
+<!--suppress HtmlUnknownTarget -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="title" content="Suroi - 뉴스">
+  <meta name="description" content="Suroi는 surviv.io에서 영감을 받은 오픈소스 2D 배틀로얄 게임입니다.">
+  <meta name="keywords" content="배틀로얄, io 게임, 브라우저 게임, 오픈소스">
+
+  <meta property="og:title" content="Suroi - 뉴스">
+  <meta property="og:description" content="Suroi는 surviv.io에서 영감을 받은 오픈소스 2D 배틀로얄 게임입니다.">
+
+  <title>Suroi - 뉴스</title>
+
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="icon" type="image/svg+xml" sizes="any" href="../img/logos/suroi_favicon.svg">
+
+  <link rel="icon" type="image/x-icon" sizes="16x16" href="../img/logos/suroi_favicon_16x16.png">
+  <link rel="icon" type="image/x-icon" sizes="32x32" href="../img/logos/suroi_favicon_32x32.png">
+  <link rel="icon" type="image/x-icon" sizes="96x96" href="../img/logos/suroi_favicon_96x96.png">
+</head>
+
+<body>
+  <div id="splash-logo">
+    <a href="../" title="게임 플레이 (홈으로 돌아가기)">
+      <img src="../img/logos/suroi_beta.svg" alt="Suroi 로고" draggable="false">
+    </a>
+  </div>
+  <div id="news-page-wrapper">
+    <div id="news-page">
+      <h1>
+        <i class="fa-solid fa-newspaper"></i>
+        뉴스
+      </h1>
+      <div id="news-articles"></div>
+    </div>
+  </div>
+  <div id="splash-more" class="dropdown">
+    <button class="btn btn-darken btn-primary btn-dropdown" id="btn-dropdown-more">
+      더 보기
+      <i class="fa-solid fa-caret-down"></i>
+    </button>
+    <div class="dropdown-content">
+      <a href="/" rel="noopener noreferrer">
+        게임 플레이
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <a href="https://wiki.suroi.io" rel="noopener noreferrer">
+        위키
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <a href="/proxy.txt" rel="noopener noreferrer">
+        프록시
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+      <a href="/leaderboard/" rel="noopener noreferrer">
+        리더보드
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    </div>
+  </div>
+
+  <script src="./src/main.ts" type="module"></script>
+</body>
+
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최후의생존 근접무기 에디터</title>
+    <link rel="icon" type="image/svg+xml" href="../img/logos/suroi_favicon.svg">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .weapon-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .weapon-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .weapon-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .weapon-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .weapon-item img {
+            width: 100%;
+            height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .weapon-item .name {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .preview-box img {
+            max-width: 150px;
+            max-height: 80px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+        }
+
+        .stat-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .slider-group {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .slider-group .value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tabs button {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #aaa;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+        }
+
+        .tabs button.active {
+            background: rgba(102, 126, 234, 0.3);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-output {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 300px;
+            overflow: auto;
+            white-space: pre-wrap;
+            color: #38ef7d;
+        }
+
+        .spawn-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .spawn-checkbox:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1><span
+                style="background: linear-gradient(135deg, #ff6b00, #ff4500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;">최후의생존</span>
+            근접무기 에디터</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="location.href='/admin/'">← 관리자 패널</button>
+            <button class="btn btn-success" onclick="exportMelee()">💾 내보내기</button>
+        </div>
+    </header>
+
+    <div style="padding: 20px;">
+        <div class="tabs">
+            <button class="active" onclick="showTab('create')">🗡️ 근접무기 생성</button>
+            <button onclick="showTab('gallery')">🖼️ 이미지 갤러리</button>
+            <button onclick="showTab('export')">📄 코드 출력</button>
+        </div>
+
+        <div id="create" class="tab-content active">
+            <div class="card">
+                <h2>기본 정보</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>무기 ID (영문)</label>
+                        <input type="text" id="melee-id" placeholder="my_sword" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>무기 이름</label>
+                        <input type="text" id="melee-name" placeholder="My Sword" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>티어</label>
+                        <select id="melee-tier" onchange="updatePreview()">
+                            <option value="D">D (일반)</option>
+                            <option value="C">C (비일반)</option>
+                            <option value="B">B (희귀)</option>
+                            <option value="A">A (에픽)</option>
+                            <option value="S">S (레전드리)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>공격 모드</label>
+                        <select id="melee-firemode" onchange="updatePreview()">
+                            <option value="Single">단발 (클릭)</option>
+                            <option value="Auto">자동 (홀드)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>이미지 선택</h2>
+                <div class="preview-box">
+                    <img id="selected-preview" src="../img/game/shared/weapons/kbar.svg" alt="Preview">
+                    <p id="selected-name" style="color:#aaa; font-size:12px; margin-top:10px;">kbar.svg</p>
+                </div>
+                <div class="weapon-gallery" id="melee-gallery"></div>
+            </div>
+
+            <div class="card">
+                <h2>스탯 조정</h2>
+                <div class="stat-sliders">
+                    <div class="slider-group">
+                        <label>피해량 <span class="value" id="val-damage">25</span></label>
+                        <input type="range" id="stat-damage" min="5" max="100" value="25"
+                            oninput="updateStat('damage')">
+                    </div>
+                    <div class="slider-group">
+                        <label>공격 쿨다운 (ms) <span class="value" id="val-cooldown">250</span></label>
+                        <input type="range" id="stat-cooldown" min="50" max="1000" value="250" step="10"
+                            oninput="updateStat('cooldown')">
+                    </div>
+                    <div class="slider-group">
+                        <label>공격 범위 <span class="value" id="val-radius">2.5</span></label>
+                        <input type="range" id="stat-radius" min="1" max="5" value="2.5" step="0.1"
+                            oninput="updateStat('radius')">
+                    </div>
+                    <div class="slider-group">
+                        <label>장애물 피해 배율 <span class="value" id="val-obstacle">1.5</span></label>
+                        <input type="range" id="stat-obstacle" min="0.5" max="5" value="1.5" step="0.1"
+                            oninput="updateStat('obstacle')">
+                    </div>
+                    <div class="slider-group">
+                        <label>이동속도 배율 <span class="value" id="val-speed">1.0</span></label>
+                        <input type="range" id="stat-speed" min="0.7" max="1.3" value="1" step="0.01"
+                            oninput="updateStat('speed')">
+                    </div>
+                    <div class="slider-group">
+                        <label>얼음 피해 배율 <span class="value" id="val-ice">0.01</span></label>
+                        <input type="range" id="stat-ice" min="0.01" max="5" value="0.01" step="0.01"
+                            oninput="updateStat('ice')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📍 스폰 위치</h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">
+                    <label class="spawn-checkbox"><input type="checkbox" id="spawn-melee-crate" checked> 📦 근접무기
+                        상자</label>
+                    <label class="spawn-checkbox"><input type="checkbox" id="spawn-regular-crate"> 📦 일반 상자</label>
+                    <label class="spawn-checkbox"><input type="checkbox" id="spawn-airdrop-melee"> 🪂 에어드랍</label>
+                </div>
+                <div class="form-row" style="margin-top:15px;">
+                    <div class="form-group">
+                        <label>스폰 확률 (weight)</label>
+                        <input type="number" id="spawn-weight" value="0.5" step="0.1" min="0.1" max="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gallery" class="tab-content">
+            <div class="card">
+                <h2>🖼️ 근접무기 이미지</h2>
+                <div class="weapon-gallery" id="full-gallery" style="max-height:600px;"></div>
+            </div>
+        </div>
+
+        <div id="export" class="tab-content">
+            <div class="card">
+                <h2>📄 생성된 TypeScript 코드</h2>
+                <p style="color:#aaa; margin-bottom:15px;"><code>common/src/definitions/items/melees.ts</code>에 추가</p>
+                <div class="code-output" id="code-output"></div>
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <button class="btn btn-primary" onclick="copyCode()">📋 코드 복사</button>
+                    <button class="btn btn-success" onclick="downloadCode()">💾 파일 다운로드</button>
+                    <button class="btn btn-danger" onclick="saveToFile()"
+                        style="background:linear-gradient(135deg,#f5576c 0%,#ff6b6b 100%);">🚀 게임에 추가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const meleeImages = [
+            "baseball_bat", "chainsaw", "crowbar", "crowbar_halloween", "crowbar_rusted",
+            "falchion", "fire_hatchet", "hatchet", "ice_pick", "kbar", "kukri",
+            "maul", "pan", "scythe", "seax", "sickle"
+        ];
+
+        let selectedImage = "kbar";
+
+        function createGallery(containerId) {
+            document.getElementById(containerId).innerHTML = meleeImages.map(name => `
+            <div class="weapon-item ${name === selectedImage ? 'selected' : ''}" onclick="selectMelee('${name}')">
+                <img src="../img/game/shared/weapons/${name}.svg" alt="${name}" onerror="this.src='../img/game/shared/weapons/kbar.svg'">
+                <div class="name">${name}</div>
+            </div>
+        `).join('');
+        }
+
+        function selectMelee(name) {
+            selectedImage = name;
+            document.querySelectorAll('.weapon-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            document.getElementById('selected-preview').src = `../img/game/shared/weapons/${name}.svg`;
+            document.getElementById('selected-name').textContent = name + '.svg';
+            updatePreview();
+        }
+
+        function updateStat(stat) {
+            document.getElementById(`val-${stat}`).textContent = document.getElementById(`stat-${stat}`).value;
+            updatePreview();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'export') generateCode();
+        }
+
+        function generateCode() {
+            const id = document.getElementById('melee-id').value || 'my_melee';
+            const name = document.getElementById('melee-name').value || 'My Melee';
+            const tier = document.getElementById('melee-tier').value;
+            const fireMode = document.getElementById('melee-firemode').value;
+            const damage = document.getElementById('stat-damage').value;
+            const cooldown = document.getElementById('stat-cooldown').value;
+            const radius = document.getElementById('stat-radius').value;
+            const obstacle = document.getElementById('stat-obstacle').value;
+            const speed = document.getElementById('stat-speed').value;
+            const ice = document.getElementById('stat-ice').value;
+
+            const code = `{
+    idString: "${id}",
+    name: "${name}",
+    defType: DefinitionType.Melee,
+    tier: Tier.${tier},
+    ${fireMode === 'Auto' ? 'fireMode: FireMode.Auto,' : ''}
+    damage: ${damage},
+    speedMultiplier: ${speed},
+    obstacleMultiplier: ${obstacle},
+    iceMultiplier: ${ice},
+    radius: ${radius},
+    offset: Vec(3.1, 0.9),
+    cooldown: ${cooldown},
+    swingSound: "soft_swing",
+    fists: {
+        animationDuration: 100,
+        left: Vec(38, -35),
+        right: Vec(38, 35)
+    },
+    image: {
+        position: Vec(62, 42),
+        angle: 60,
+        lootScale: 0.8
+    },
+    animation: [
+        {
+            duration: 100,
+            fists: { left: Vec(38, -35), right: Vec(70, 20) },
+            image: { position: Vec(90, 8), angle: 5 }
+        },
+        {
+            duration: 100,
+            fists: { left: Vec(38, -35), right: Vec(38, 35) },
+            image: { position: Vec(62, 42), angle: 60 }
+        }
+    ]
+},`;
+            document.getElementById('code-output').textContent = code;
+        }
+
+        function updatePreview() { generateCode(); }
+
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('code-output').textContent);
+            alert('✅ 코드 복사됨!');
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('code-output').textContent;
+            const id = document.getElementById('melee-id').value || 'my_melee';
+            const blob = new Blob([code], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${id}_definition.ts`;
+            a.click();
+        }
+
+        function exportMelee() {
+            generateCode();
+            showTab('export');
+        }
+
+        async function saveToFile() {
+            const code = document.getElementById('code-output').textContent;
+            const id = document.getElementById('melee-id').value;
+            const name = document.getElementById('melee-name').value;
+            if (!id || !name) { alert('❌ ID와 이름을 입력하세요!'); return; }
+
+            const spawnLocations = [];
+            if (document.getElementById('spawn-melee-crate').checked) spawnLocations.push('meleeCrate');
+            if (document.getElementById('spawn-regular-crate').checked) spawnLocations.push('regularCrate');
+            if (document.getElementById('spawn-airdrop-melee').checked) spawnLocations.push('airdropMelee');
+            const spawnWeight = parseFloat(document.getElementById('spawn-weight').value);
+
+            try {
+                const response = await fetch('http://localhost:8080/api/melees/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, meleeId: id, spawnLocations, spawnWeight })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert(`✅ 근접무기 "${name}" 추가 완료!\n\n다음 단계:\n1. bun run build\n2. 서버 재시작`);
+                } else {
+                    alert('❌ 오류: ' + result.error);
+                }
+            } catch (error) {
+                alert('❌ API 서버 연결 실패!\n\n먼저 API 서버를 실행하세요.');
+            }
+        }
+
+        createGallery('melee-gallery');
+        createGallery('full-gallery');
+        generateCode();
+    </script>
+</body>
+
+</html>
