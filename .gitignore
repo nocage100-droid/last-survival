@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+dist/
+build/
+.env
+비밀정보_절대공유금지.txt
+.gemini/
+*.egg
+**/.git/
